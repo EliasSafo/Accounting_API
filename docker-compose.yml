@@ -1,0 +1,28 @@
+version: "1.0"
+
+services:
+  api_elias:
+    build: ..
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_HOST=database
+    depends_on:
+      - database  # Corrected indentation and added a space between the hyphen and "database"
+
+  database:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=post_db
+      - POSTGRES_USER=elias
+      - POSTGRES_PASSWORD=secret_123
+    ports:
+      - "5432:5432"  # Expose the PostgreSQL container's port
+    volumes:
+      - postgres_data:/var/lib/postgres/data/
+
+volumes:
+  postgres_data:
+    driver: local
+
