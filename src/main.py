@@ -43,6 +43,10 @@ async def get_by_id(user_id: int, db: Session = Depends(get_db)):
 async def transfer_money(
     sender_id: int, reciever_id: int, amount: float, db: Session = Depends(get_db)
 ):
+    if amount < 0:
+        raise HTTPException(
+            status_code=403, detail="Nice try, but you cannot send a negative amount"
+        )
     sender = crud.get_user(db=db, user_id=sender_id)
     receiver = crud.get_user(db=db, user_id=reciever_id)
     if sender.balance < amount:
