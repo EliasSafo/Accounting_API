@@ -21,8 +21,7 @@ def get_all_users(db: Session) -> list[schemas.User]:
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    if user.balance < 0:
-        raise ValueError("You cannot create a user with a negative balance")
+
     db_user = models.User(name=user.name, balance=user.balance, role=user.role)
     db.add(db_user)
     db.commit()
