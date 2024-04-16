@@ -31,6 +31,10 @@ async def get_users(db: Session = Depends(get_db)):
 
 @app.post("/users/", response_model=schemas.User, status_code=201)
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    if user.balance < 0:
+        raise HTTPException(
+            status_code=400, detail="You cannot create a user with a negative balance")
     return crud.create_user(db=db, user=user)
 
 
@@ -43,6 +47,10 @@ async def get_by_id(user_id: int, db: Session = Depends(get_db)):
 async def transfer_money(
     sender_id: int, reciever_id: int, amount: float, db: Session = Depends(get_db)
 ):
+    if amount < 0:
+        raise HTTPException(
+            status_code=400, detail="Nice try, but you cannot send a negative amount"
+        )
     sender = crud.get_user(db=db, user_id=sender_id)
     receiver = crud.get_user(db=db, user_id=reciever_id)
     if sender.balance < amount:
@@ -55,26 +63,23 @@ async def transfer_money(
     return {"sender": sender.balance, "receiver": receiver.balance}
 
 
-@app.put("/withdraw",response_model=schemas.User)
-async def withdraw_money(user_id:int, amount:float, db:Session=Depends(get_db)):
-    if amount < 0 :
+@app.put("/withdraw", response_model=schemas.User)
+async def withdraw_money(user_id: int, amount: float, db: Session = Depends(get_db)):
+    if amount < 0:
         raise HTTPException(
-            status_code=403, detail="You cannot withdraw negative funds"
+            status_code=400, detail="You cannot withdraw negative funds"
         )
     user = crud.get_user(db=db, user_id=user_id)
-    user.balance-= amount
-    db.commit()
-    return user
-
-@app.put("/deposit",response_model=schemas.User)
-async def deposit_money(user_id:int, amount:float, db:Session=Depends(get_db)):
-    if amount < 0 :
-        raise HTTPException(
-            status_code=403, detail="You cannot deposit negative funds"
-        )
-    user = crud.get_user(db=db, user_id=user_id)
-    user.balance+= amount
+    user.balance -= amount
     db.commit()
     return user
 
 
+@app.put("/deposit", response_model=schemas.User)
+async def deposit_money(user_id: int, amount: float, db: Session = Depends(get_db)):
+    if amount < 0:
+        raise HTTPException(status_code=400, detail="You cannot deposit negative funds")
+    user = crud.get_user(db=db, user_id=user_id)
+    user.balance += amount
+    db.commit()
+    return user
